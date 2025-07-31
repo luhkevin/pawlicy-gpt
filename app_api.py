@@ -2,8 +2,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from app.src.query import retrieval_chain  # import retrieval chain from RAG file
-from app.src.query import llm  # import llm from RAG file
 
 app = FastAPI()
 
@@ -25,8 +23,16 @@ def build_history_text(history):
         f"{'User' if m['role']=='user' else 'Assistant'}: {m['content']}" for m in history
     )
 
+@app.get("/health")
+async def health(request: Request):
+    return {
+        "status": "OK"
+    }
+
 @app.post("/ask")
 async def ask_question(request: Request):
+    from app.src.query import retrieval_chain  # import retrieval chain from RAG file
+    from app.src.query import llm  # import llm from RAG file
     data = await request.json()
     user_input = data.get("question", "")
     result = retrieval_chain.invoke({"input": user_input})
